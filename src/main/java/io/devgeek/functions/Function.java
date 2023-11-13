@@ -39,19 +39,22 @@ public class Function {
         // Parse query parameter
         final byte[] body = request.getBody().get();
         
-        //Map<String, String> queryParameters = request.getQueryParameters();
-        //final String fileName = queryParameters.get("filename");
+        Map<String, String> queryParameters = request.getQueryParameters();
+        final String fileName = queryParameters.get("filename");
 
         final Gson gson = new Gson();
-        PrintableResponse response = new PrintableResponse();
 
-        /*if(!fileName.contains(".pdf")) {
-            response.errors.add("Unsupported file type.");
-            response.errors.add("Only pdf files is supported");
+        if(!fileName.contains(".pdf")) {
+            PrintableErrorResponse errorResponse = new PrintableErrorResponse();
+            errorResponse.error = true;
+            errorResponse.message = "Unsupported file type";
+            errorResponse.errors.add("Only pdf files is supported");
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                .body(gson.toJson(response))
+                .body(gson.toJson(errorResponse))
                 .build();
-        }*/
+        }
+
+        PrintableResponse response = new PrintableResponse();
 
         PdfValidator pdfValidator = new PdfValidator();
         PdfValidationSettings printValidationSettings = new PdfValidationSettings(true, true, true, true);
@@ -74,8 +77,9 @@ public class Function {
                 .build();
         } catch(Exception e) {
             final Gson gson = new Gson();
-            PrintableResponse response = new PrintableResponse();
-            response.errors.add("Something went wrong");
+            PrintableErrorResponse response = new PrintableErrorResponse();
+            response.error = true;
+            response.message = "Something went wrong";
             response.errors.add(e.getMessage());
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -91,6 +95,12 @@ public class Function {
         Boolean okForPrint = false;
         Boolean okForWeb = false;
         Integer pages = 0;
+        ArrayList<String> errors = new ArrayList<String>();
+    }
+
+    public class PrintableErrorResponse {
+        Boolean error = true;
+        String message = "";
         ArrayList<String> errors = new ArrayList<String>();
     }
 }
